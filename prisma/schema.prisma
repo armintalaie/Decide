@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User table
+model User {
+  id                String     @default(cuid()) @id
+  firstName         String
+  lastName          String
+  emailAddress      String
+  teams             Member[]
+  userDecisions     UserDecision[]
+}
+
+// Team table
+model Team {
+  id               String     @default(cuid()) @id
+  name             String
+  createdAt        DateTime   @default(now())
+  members          Member[]
+}
+
+// User-Team relationship table
+model Member {
+  user             User       @relation(fields: [userId], references: [id])
+  userId           String     
+  team             Team       @relation(fields: [teamId], references: [id])
+  teamId           String
+  invitedAt        DateTime   @default(now())
+
+  @@id([userId, teamId]) 
+}
+
+// Decision Table
+model Decision {
+  id               String     @default(cuid()) @id
+  name             String
+  description      String     @default("")
+  createdAt        DateTime   @default(now())
+  deadline         DateTime
+  status           DecisionStatus @default(Undecided)
+  link             String?
+  userDecisions    UserDecision[]
+}
+
+// User-Desicion Table
+model UserDecision {
+  id               String     @default(cuid()) @id
+  decision         Decision   @relation(fields: [decisionId], references: [id])
+  decisionId       String     
+  user             User     @relation(fields: [userId], references: [id])
+  userId           String
+  invited_at       DateTime   @default(now())
+  status           DecisionStatus @default(Undecided)
+}
+
+enum DecisionStatus {
+  Approved
+  Rejected
+  Undecided
+}
